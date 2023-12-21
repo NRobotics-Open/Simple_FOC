@@ -1,7 +1,7 @@
 
 #include "../../hardware_api.h"
 
-#if defined(_STM32_DEF_) and !defined(ARDUINO_B_G431B_ESC1) 
+#if defined(_STM32_DEF_) and !defined(ARDUINO_B_G431B_ESC1) and !defined(ARDUINO_GENERIC_G431CBUX)
 
 #include "stm32_mcu.h"
 
