@@ -1,5 +1,5 @@
 #include "../../../hardware_api.h"
-#if defined(ARDUINO_B_G431B_ESC1)
+#if defined(ARDUINO_B_G431B_ESC1) || defined(ARDUINO_GENERIC_G431CBUX)
 
 #include "communication/SimpleFOCDebug.h"
 
@@ -134,7 +134,7 @@ void  MX_ADC1_Init(ADC_HandleTypeDef* hadc1)
   {
     SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
   }
-
+#if defined(ARDUINO_B_G431B_ESC1)
   //******************************************************************
   // Temp, Poti ....
   /* Configure Regular Channel (PB12, Potentiometer)
@@ -175,6 +175,48 @@ void  MX_ADC1_Init(ADC_HandleTypeDef* hadc1)
   {
     SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
   }
+#endif
+#if defined(ARDUINO_GENERIC_G431CBUX)
+  //******************************************************************
+  // Temp, Poti ....
+  /* Configure Regular Channel (PB11, Lichtschranke)
+  */
+  sConfig.Channel = ADC_CHANNEL_14;
+  sConfig.Rank = ADC_REGULAR_RANK_3;
+  sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
+  sConfig.SingleDiff = ADC_SINGLE_ENDED;
+  sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  sConfig.Offset = 0;
+  if (HAL_ADC_ConfigChannel(hadc1, &sConfig) != HAL_OK)
+  {
+    SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
+  }
+  /** Configure Regular Channel (PB12, Temperature)
+  */
+  sConfig.Channel = ADC_CHANNEL_11;
+  sConfig.Rank = ADC_REGULAR_RANK_4;
+  sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
+  sConfig.SingleDiff = ADC_SINGLE_ENDED;
+  sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  sConfig.Offset = 0;
+  if (HAL_ADC_ConfigChannel(hadc1, &sConfig) != HAL_OK)
+  {
+    SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
+  }
+  /** Configure Regular Channel (PA1, Vbuss)
+  */
+  sConfig.Channel = ADC_CHANNEL_1;
+  sConfig.Rank = ADC_REGULAR_RANK_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
+  sConfig.SingleDiff = ADC_SINGLE_ENDED;
+  sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  sConfig.Offset = 0;
+  if (HAL_ADC_ConfigChannel(hadc1, &sConfig) != HAL_OK)
+  {
+    SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
+  }
+
+#endif
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */

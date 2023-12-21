@@ -1,7 +1,10 @@
 #ifndef B_G431_ESC1_HAL
 #define B_G431_ESC1_HAL
 
-#if defined(ARDUINO_B_G431B_ESC1)
+#if defined(ARDUINO_B_G431B_ESC1) || defined(ARDUINO_GENERIC_G431CBUX)
+
+
+#warning "USE ARDUINO_B_G431B_ESC1"
 
 #include <stm32g4xx_hal_adc.h>
 #include <stm32g4xx_hal_opamp.h>

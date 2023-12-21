@@ -1,6 +1,9 @@
 #include "../../../hardware_api.h"
 
-#if defined(ARDUINO_B_G431B_ESC1) 
+#if defined(ARDUINO_B_G431B_ESC1) || defined(ARDUINO_GENERIC_G431CBUX)
+
+
+//  defined(ARDUINO_GENERIC_G431CBUX)
 
 #include "b_g431_hal.h"
 #include "Arduino.h"
@@ -12,6 +15,8 @@
 #define _ADC_RESOLUTION 4096.0f
 #define ADC_BUF_LEN_1 5
 #define ADC_BUF_LEN_2 1
+
+
 
 static ADC_HandleTypeDef hadc1;
 static ADC_HandleTypeDef hadc2;
@@ -38,13 +43,22 @@ float _readADCVoltageInline(const int pin, const void* cs_params){
     raw_adc = adcBuffer1[0];
 #endif
 
+#if defined(ARDUINO_B_G431B_ESC1)
   else if (pin == A_POTENTIOMETER)
     raw_adc = adcBuffer1[2];
   else if (pin == A_TEMPERATURE)
     raw_adc = adcBuffer1[3];
   else if (pin == A_VBUS)
     raw_adc = adcBuffer1[4];
-
+#endif
+#if defined(ARDUINO_GENERIC_G431CBUX)
+  else if (pin == PB11)
+    raw_adc = adcBuffer1[2];
+  else if (pin == PB12)
+    raw_adc = adcBuffer1[3];
+  else if (pin == PA2)
+    raw_adc = adcBuffer1[4];
+#endif
   return raw_adc * ((Stm32CurrentSenseParams*)cs_params)->adc_voltage_conv;
 }
 
