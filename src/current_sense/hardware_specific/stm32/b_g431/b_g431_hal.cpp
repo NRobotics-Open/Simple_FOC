@@ -203,7 +203,7 @@ void  MX_ADC1_Init(ADC_HandleTypeDef* hadc1)
   {
     SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
   }
-  /** Configure Regular Channel (PA1, Vbuss)
+  /** Configure Regular Channel (PA0, Vbuss)
   */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = ADC_REGULAR_RANK_5;

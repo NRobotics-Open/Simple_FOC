@@ -56,7 +56,7 @@ float _readADCVoltageInline(const int pin, const void* cs_params){
     raw_adc = adcBuffer1[2];
   else if (pin == PB12)
     raw_adc = adcBuffer1[3];
-  else if (pin == PA2)
+  else if (pin == PA0)
     raw_adc = adcBuffer1[4];
 #endif
   return raw_adc * ((Stm32CurrentSenseParams*)cs_params)->adc_voltage_conv;
