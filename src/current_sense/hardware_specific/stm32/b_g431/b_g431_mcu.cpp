@@ -13,8 +13,20 @@
 
 #define _ADC_VOLTAGE 3.3f
 #define _ADC_RESOLUTION 4096.0f
-#define ADC_BUF_LEN_1 5
+
+#if defined(ARDUINO_B_G431B_ESC1)  
+#define ADC_BUF_LEN_1 4
 #define ADC_BUF_LEN_2 1
+volatile uint16_t adcBuffer1[ADC_BUF_LEN_1] = {0}; // Buffer for store the results of the ADC conversion
+volatile uint16_t adcBuffer2[ADC_BUF_LEN_2] = {0}; // Buffer for store the results of the ADC conversion
+#endif
+
+#if defined(ARDUINO_GENERIC_G431CBUX)
+#define ADC_BUF_LEN_1 3
+#define ADC_BUF_LEN_2 2
+volatile uint16_t adcBuffer1[ADC_BUF_LEN_1] = {0}; // Buffer for store the results of the ADC conversion
+volatile uint16_t adcBuffer2[ADC_BUF_LEN_2] = {0}; // Buffer for store the results of the ADC conversion
+#endif
 
 
 
@@ -27,14 +39,13 @@ static OPAMP_HandleTypeDef hopamp3;
 static DMA_HandleTypeDef hdma_adc1;
 static DMA_HandleTypeDef hdma_adc2;
 
-volatile uint16_t adcBuffer1[ADC_BUF_LEN_1] = {0}; // Buffer for store the results of the ADC conversion
-volatile uint16_t adcBuffer2[ADC_BUF_LEN_2] = {0}; // Buffer for store the results of the ADC conversion
 
 // function reading an ADC value and returning the read voltage
 // As DMA is being used just return the DMA result
 float _readADCVoltageInline(const int pin, const void* cs_params){
   uint32_t raw_adc = 0;
-  if(pin == PA2)  // = ADC1_IN3 = phase U (OP1_OUT) on B-G431B-ESC1
+#if defined(ARDUINO_B_G431B_ESC1)  
+  if(pin == PA2)      // = ADC1_IN3 = phase U (OP1_OUT) on B-G431B-ESC1
     raw_adc = adcBuffer1[1];
   else if(pin == PA6) // = ADC2_IN3 = phase V (OP2_OUT) on B-G431B-ESC1
     raw_adc = adcBuffer2[0];
@@ -42,8 +53,6 @@ float _readADCVoltageInline(const int pin, const void* cs_params){
   else if(pin == PB1) // = ADC1_IN12 = phase W (OP3_OUT) on B-G431B-ESC1
     raw_adc = adcBuffer1[0];
 #endif
-
-#if defined(ARDUINO_B_G431B_ESC1)
   else if (pin == A_POTENTIOMETER)
     raw_adc = adcBuffer1[2];
   else if (pin == A_TEMPERATURE)
@@ -51,13 +60,18 @@ float _readADCVoltageInline(const int pin, const void* cs_params){
   else if (pin == A_VBUS)
     raw_adc = adcBuffer1[4];
 #endif
+
 #if defined(ARDUINO_GENERIC_G431CBUX)
-  else if (pin == PB11)
+  if(pin == PA2)        // = ADC1_IN3 = phase U (OP1_OUT)
+    raw_adc = adcBuffer1[0];
+  else if(pin == PA6)   // = ADC2_IN3 = phase V (OP2_OUT)
+    raw_adc = adcBuffer2[0];
+  else if(pin == PB1)   // = ADC1_IN12 = phase W (OP3_OUT)
+    raw_adc = adcBuffer2[1];
+  else if (pin == PB11) // Lichtschranke
+    raw_adc = adcBuffer1[1];
+  else if (pin == PA0)  // V Batt
     raw_adc = adcBuffer1[2];
-  else if (pin == PB12)
-    raw_adc = adcBuffer1[3];
-  else if (pin == PA0)
-    raw_adc = adcBuffer1[4];
 #endif
   return raw_adc * ((Stm32CurrentSenseParams*)cs_params)->adc_voltage_conv;
 }
@@ -120,7 +134,7 @@ void* _configureADCLowSide(const void* driver_params, const int pinA,const int p
   HAL_Init();
   MX_GPIO_Init();
   MX_DMA_Init(); 
-  _configureOPAMPs(&hopamp1, &hopamp3, &hopamp2);
+  // _configureOPAMPs(&hopamp1, &hopamp3, &hopamp2);
   MX_ADC1_Init(&hadc1);
   MX_ADC2_Init(&hadc2);
 
@@ -139,9 +153,9 @@ void* _configureADCLowSide(const void* driver_params, const int pinA,const int p
     SIMPLEFOC_DEBUG("DMA read init failed");
   }
 
-  HAL_OPAMP_Start(&hopamp1);
-  HAL_OPAMP_Start(&hopamp2);
-  HAL_OPAMP_Start(&hopamp3); 
+  // HAL_OPAMP_Start(&hopamp1);
+  // HAL_OPAMP_Start(&hopamp2);
+  // HAL_OPAMP_Start(&hopamp3); 
   
   Stm32CurrentSenseParams* params = new Stm32CurrentSenseParams {
     .pins = { pinA, pinB, pinC },

@@ -82,7 +82,7 @@ void  MX_ADC1_Init(ADC_HandleTypeDef* hadc1)
   ADC_ChannelConfTypeDef sConfig = {0};
 
   /* USER CODE BEGIN ADC1_Init 1 */
-
+ #if defined(ARDUINO_B_G431B_ESC1)
   /* USER CODE END ADC1_Init 1 */
   /** Common config 
   */
@@ -95,7 +95,7 @@ void  MX_ADC1_Init(ADC_HandleTypeDef* hadc1)
   hadc1->Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc1->Init.LowPowerAutoWait = DISABLE;
   hadc1->Init.ContinuousConvMode = DISABLE;
-  hadc1->Init.NbrOfConversion = 5;
+  hadc1->Init.NbrOfConversion = 4;
   hadc1->Init.DiscontinuousConvMode = DISABLE;
   hadc1->Init.ExternalTrigConv = ADC_EXTERNALTRIG_T1_TRGO;
   hadc1->Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
@@ -114,9 +114,10 @@ void  MX_ADC1_Init(ADC_HandleTypeDef* hadc1)
   {
     SIMPLEFOC_DEBUG("HAL_ADCEx_MultiModeConfigChannel failed!");
   }
+ 
   /** Configure Regular Channel 
   */
-  sConfig.Channel = ADC_CHANNEL_12;     // ADC1_IN12 = PB1 = OP3_OUT
+  sConfig.Channel = ADC_CHANNEL_12;     // ADC1_IN12 = PB1 = OP3_OUT 
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
@@ -134,7 +135,7 @@ void  MX_ADC1_Init(ADC_HandleTypeDef* hadc1)
   {
     SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
   }
-#if defined(ARDUINO_B_G431B_ESC1)
+
   //******************************************************************
   // Temp, Poti ....
   /* Configure Regular Channel (PB12, Potentiometer)
@@ -177,13 +178,40 @@ void  MX_ADC1_Init(ADC_HandleTypeDef* hadc1)
   }
 #endif
 #if defined(ARDUINO_GENERIC_G431CBUX)
-  //******************************************************************
-  // Temp, Poti ....
-  /* Configure Regular Channel (PB11, Lichtschranke)
+
+  /** Common config 
   */
-  sConfig.Channel = ADC_CHANNEL_14;
-  sConfig.Rank = ADC_REGULAR_RANK_3;
-  sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
+  hadc1->Instance = ADC1;
+  hadc1->Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV16;
+  hadc1->Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1->Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1->Init.GainCompensation = 0;
+  hadc1->Init.ScanConvMode = ADC_SCAN_ENABLE;
+  hadc1->Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc1->Init.LowPowerAutoWait = DISABLE;
+  hadc1->Init.ContinuousConvMode = DISABLE;
+  hadc1->Init.NbrOfConversion = 3;
+  hadc1->Init.DiscontinuousConvMode = DISABLE;
+  hadc1->Init.ExternalTrigConv = ADC_EXTERNALTRIG_T1_TRGO;
+  hadc1->Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
+  hadc1->Init.DMAContinuousRequests = ENABLE;
+  hadc1->Init.Overrun = ADC_OVR_DATA_PRESERVED;
+
+  if (HAL_ADC_Init(hadc1) != HAL_OK)
+  {
+    SIMPLEFOC_DEBUG("HAL_ADC_Init failed!");
+  }
+
+  /** Configure the ADC multi-mode 
+  */
+  multimode.Mode = ADC_MODE_INDEPENDENT;
+  if (HAL_ADCEx_MultiModeConfigChannel(hadc1, &multimode) != HAL_OK)
+  {
+    SIMPLEFOC_DEBUG("HAL_ADCEx_MultiModeConfigChannel failed!");
+  }
+  sConfig.Channel = ADC_CHANNEL_13;     // ADC1_IN3 = PA2 = OP1_OUT || internal ADC1_IN13
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
@@ -191,10 +219,13 @@ void  MX_ADC1_Init(ADC_HandleTypeDef* hadc1)
   {
     SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
   }
-  /** Configure Regular Channel (PB12, Temperature)
+  
+  //******************************************************************
+  // Temp, Poti ....
+  /* Configure Regular Channel (PB11, Lichtschranke)
   */
-  sConfig.Channel = ADC_CHANNEL_11;
-  sConfig.Rank = ADC_REGULAR_RANK_4;
+  sConfig.Channel = ADC_CHANNEL_14;
+  sConfig.Rank = ADC_REGULAR_RANK_2;
   sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
@@ -206,7 +237,7 @@ void  MX_ADC1_Init(ADC_HandleTypeDef* hadc1)
   /** Configure Regular Channel (PA0, Vbuss)
   */
   sConfig.Channel = ADC_CHANNEL_1;
-  sConfig.Rank = ADC_REGULAR_RANK_5;
+  sConfig.Rank = ADC_REGULAR_RANK_3;
   sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
@@ -216,6 +247,18 @@ void  MX_ADC1_Init(ADC_HandleTypeDef* hadc1)
     SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
   }
 
+  /** Configure Regular Channel (PB12, Temperature)
+  */
+  // sConfig.Channel = ADC_CHANNEL_11;
+  // sConfig.Rank = ADC_REGULAR_RANK_4;
+  // sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
+  // sConfig.SingleDiff = ADC_SINGLE_ENDED;
+  // sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  // sConfig.Offset = 0;
+  // if (HAL_ADC_ConfigChannel(hadc1, &sConfig) != HAL_OK)
+  // {
+  //   SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
+  // }
 #endif
   /* USER CODE BEGIN ADC1_Init 2 */
 
@@ -237,7 +280,7 @@ void MX_ADC2_Init(ADC_HandleTypeDef* hadc2)
   ADC_ChannelConfTypeDef sConfig = {0};
 
   /* USER CODE BEGIN ADC2_Init 1 */
-
+  #if defined(ARDUINO_B_G431B_ESC1)  
   /* USER CODE END ADC2_Init 1 */
   /** Common config 
   */
@@ -261,24 +304,75 @@ void MX_ADC2_Init(ADC_HandleTypeDef* hadc2)
   {
     SIMPLEFOC_DEBUG("HAL_ADC_Init failed!");
   }
-  /** Configure Regular Channel 
+
+    /** Configure Regular Channel 
+    */
+    sConfig.Channel = ADC_CHANNEL_16;  // ADC2_IN3 = PA6
+    sConfig.Rank = ADC_REGULAR_RANK_1;
+    sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+    sConfig.SingleDiff = ADC_SINGLE_ENDED;
+    sConfig.OffsetNumber = ADC_OFFSET_NONE;
+    sConfig.Offset = 0;
+    if (HAL_ADC_ConfigChannel(hadc2, &sConfig) != HAL_OK)
+    {
+      SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
+    }
+    /* USER CODE BEGIN ADC2_Init 2 */
+
+    /* USER CODE END ADC2_Init 2 */
+  #endif
+#if defined(ARDUINO_GENERIC_G431CBUX)
+  /** Common config 
   */
-  sConfig.Channel = ADC_CHANNEL_3;  // ADC2_IN3 = PA6
-  sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
-  sConfig.SingleDiff = ADC_SINGLE_ENDED;
-  sConfig.OffsetNumber = ADC_OFFSET_NONE;
-  sConfig.Offset = 0;
-  if (HAL_ADC_ConfigChannel(hadc2, &sConfig) != HAL_OK)
+  hadc2->Instance = ADC2;
+  hadc2->Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV16;
+  hadc2->Init.Resolution = ADC_RESOLUTION_12B;
+  hadc2->Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc2->Init.GainCompensation = 0;
+  hadc2->Init.ScanConvMode = ADC_SCAN_ENABLE;
+  hadc2->Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc2->Init.LowPowerAutoWait = DISABLE;
+  hadc2->Init.ContinuousConvMode = DISABLE;
+  hadc2->Init.NbrOfConversion = 2;
+  hadc2->Init.DiscontinuousConvMode = DISABLE;
+  hadc2->Init.ExternalTrigConv = ADC_EXTERNALTRIG_T1_TRGO;
+  hadc2->Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
+  hadc2->Init.DMAContinuousRequests = ENABLE;
+  hadc2->Init.Overrun = ADC_OVR_DATA_PRESERVED;
+
+  if (HAL_ADC_Init(hadc2) != HAL_OK)
   {
-    SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
+    SIMPLEFOC_DEBUG("HAL_ADC_Init failed!");
   }
-  /* USER CODE BEGIN ADC2_Init 2 */
+    /** Configure Regular Channel 
+    */
+    sConfig.Channel = ADC_CHANNEL_16;  // ADC2_IN3 = PA6 || internal ADC2_IN16
+    sConfig.Rank = ADC_REGULAR_RANK_1;
+    sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+    sConfig.SingleDiff = ADC_SINGLE_ENDED;
+    sConfig.OffsetNumber = ADC_OFFSET_NONE;
+    sConfig.Offset = 0;
+    if (HAL_ADC_ConfigChannel(hadc2, &sConfig) != HAL_OK)
+    {
+      SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
+    }
 
-  /* USER CODE END ADC2_Init 2 */
-
+    // /** Configure Regular Channel 
+    // */
+    sConfig.Channel = ADC_CHANNEL_18;  // internal ADC2_IN18
+    sConfig.Rank = ADC_REGULAR_RANK_2;
+    sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+    sConfig.SingleDiff = ADC_SINGLE_ENDED;
+    sConfig.OffsetNumber = ADC_OFFSET_NONE;
+    sConfig.Offset = 0;
+    if (HAL_ADC_ConfigChannel(hadc2, &sConfig) != HAL_OK)
+    {
+      SIMPLEFOC_DEBUG("HAL_ADC_ConfigChannel failed!");
+    }    
+#endif
 }
 
+#if defined(ARDUINO_B_G431B_ESC1)
 /**
 * @brief OPAMP MSP Initialization
 * This function configures the hardware resources used in this example
@@ -415,5 +509,10 @@ void HAL_OPAMP_MspDeInit(OPAMP_HandleTypeDef* hopamp)
   }
 
 }
+#endif
+// #if defined(ARDUINO_GENERIC_G431CBUX)
+
+
+// #endif
 
 #endif 

@@ -3,7 +3,7 @@
 #define STM32G4_UTILS_HAL
 
 #include "Arduino.h"
-
+#if defined(STM32G4xx)
 #if defined(_STM32_DEF_) and !defined(ARDUINO_B_G431B_ESC1) and !defined(ARDUINO_GENERIC_G431CBUX)
 
 #define _TRGO_NOT_AVAILABLE 12345
@@ -28,6 +28,8 @@ uint32_t _timerToRegularTRGO(HardwareTimer* timer);
 // function returning index of the ADC instance
 int _adcToIndex(ADC_HandleTypeDef *AdcHandle);
 int _adcToIndex(ADC_TypeDef *AdcHandle);
+
+#endif
 
 #endif
 

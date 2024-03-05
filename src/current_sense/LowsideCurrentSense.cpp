@@ -167,7 +167,7 @@ int LowsideCurrentSense::driverAlign(float voltage){
         float bc_ratio = c.c ? fabs(c.b / c.c) : 0;
         if(_isset(pinA) && ba_ratio > 1.5f ){ // should be ~2
             gain_b *= _sign(c.b);
-        }else if(_isset(pinC) && bc_ratio > 1.5f ){ // should be ~2
+        } else if(_isset(pinC) && bc_ratio > 1.5f ){ // should be ~2
             gain_b *= _sign(c.b);
         }else if(_isset(pinA) && ba_ratio < 0.7f ){ // it should be ~0.5
             // switch phase A and B
@@ -214,7 +214,7 @@ int LowsideCurrentSense::driverAlign(float voltage){
         float cb_ratio = c.b ? fabs(c.c / c.b) : 0;
         if(_isset(pinA) && ca_ratio > 1.5f ){ // should be ~2
             gain_c *= _sign(c.c);
-        }else if(_isset(pinB) && cb_ratio > 1.5f ){ // should be ~2
+        } else if(_isset(pinB) && cb_ratio > 1.5f ){ // should be ~2
             gain_c *= _sign(c.c);
         }else if(_isset(pinA) && ca_ratio < 0.7f ){ // it should be ~0.5
             // switch phase A and C
