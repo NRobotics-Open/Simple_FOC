@@ -1,39 +1,32 @@
 #include "../../../hardware_api.h"
 
-#if defined(STM32L4xx)
-
+#if defined(STM32F7xx)
 #include "../../../../common/foc_utils.h"
 #include "../../../../drivers/hardware_api.h"
 #include "../../../../drivers/hardware_specific/stm32/stm32_mcu.h"
 #include "../../../hardware_api.h"
 #include "../stm32_mcu.h"
-#include "stm32l4_hal.h"
-#include "stm32l4_utils.h"
+#include "stm32f7_hal.h"
+#include "stm32f7_utils.h"
 #include "Arduino.h"
 
 
-#define _ADC_VOLTAGE_L4 3.3f
-#define _ADC_RESOLUTION_L4 4096.0f
+#define _ADC_VOLTAGE 3.3f
+#define _ADC_RESOLUTION 4096.0f
 
 
-// array of values of 4 injected channels per adc instance (5)
-uint32_t adc_val[5][4]={0};
-// does adc interrupt need a downsample - per adc (5)
-bool needs_downsample[5] = {1};
-// downsampling variable - per adc (5)
-uint8_t tim_downsample[5] = {0};
-
-#ifdef SIMPLEFOC_STM32_ADC_INTERRUPT
-uint8_t use_adc_interrupt = 1;
-#else
-uint8_t use_adc_interrupt = 0;
-#endif
+// array of values of 4 injected channels per adc instance (3)
+uint32_t adc_val[3][4]={0};
+// does adc interrupt need a downsample - per adc (3)
+bool needs_downsample[3] = {1};
+// downsampling variable - per adc (3)
+uint8_t tim_downsample[3] = {1};
 
 void* _configureADCLowSide(const void* driver_params, const int pinA, const int pinB, const int pinC){
 
   Stm32CurrentSenseParams* cs_params= new Stm32CurrentSenseParams {
-    .pins={(int)NOT_SET, (int)NOT_SET, (int)NOT_SET},
-    .adc_voltage_conv = (_ADC_VOLTAGE_L4) / (_ADC_RESOLUTION_L4)
+    .pins={(int)NOT_SET,(int)NOT_SET,(int)NOT_SET},
+    .adc_voltage_conv = (_ADC_VOLTAGE) / (_ADC_RESOLUTION)
   };
   _adc_gpio_init(cs_params, pinA,pinB,pinC);
   if(_adc_init(cs_params, (STM32DriverParams*)driver_params) != 0) return SIMPLEFOC_CURRENT_SENSE_INIT_FAILED;
@@ -58,65 +51,21 @@ void _driverSyncLowSide(void* _driver_params, void* _cs_params){
     //   - for DMA transfer aligns with the pwm peaks instead of throughs.
     //   - for interrupt based ADC transfer 
     //   - only necessary for the timers that have repetition counters
+
     cs_params->timer_handle->getHandle()->Instance->CR1 |= TIM_CR1_DIR;
-    cs_params->timer_handle->getHandle()->Instance->CNT =  cs_params->timer_handle->getHandle()->Instance->ARR;
+    cs_params->timer_handle->getHandle()->Instance->CNT = cs_params->timer_handle->getHandle()->Instance->ARR;
     // remember that this timer has repetition counter - no need to downasmple
     needs_downsample[_adcToIndex(cs_params->adc_handle)] = 0;
-  }else{
-    if(!use_adc_interrupt){
-      // If the timer has no repetition counter, it needs to use the interrupt to downsample for low side sensing
-      use_adc_interrupt = 1;
-      #ifdef SIMPLEFOC_STM32_DEBUG
-      SIMPLEFOC_DEBUG("STM32-CS: timer has no repetition counter, ADC interrupt has to be used");
-      #endif
-    }
   }
-  
   // set the trigger output event
   LL_TIM_SetTriggerOutput(cs_params->timer_handle->getHandle()->Instance, LL_TIM_TRGO_UPDATE);
 
-  // Start the adc calibration
-  HAL_ADCEx_Calibration_Start(cs_params->adc_handle,ADC_SINGLE_ENDED);
-  
   // start the adc
-  if (use_adc_interrupt){
-    if(cs_params->adc_handle->Instance == ADC1) {
-      // enable interrupt
-      HAL_NVIC_SetPriority(ADC1_2_IRQn, 0, 0);
-      HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
-    }
-    #ifdef ADC2
-    else if (cs_params->adc_handle->Instance == ADC2) {
-      // enable interrupt
-      HAL_NVIC_SetPriority(ADC1_2_IRQn, 0, 0);
-      HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
-    }
-  #endif
-  #ifdef ADC3
-    else if (cs_params->adc_handle->Instance == ADC3) {
-      // enable interrupt
-      HAL_NVIC_SetPriority(ADC3_IRQn, 0, 0);
-      HAL_NVIC_EnableIRQ(ADC3_IRQn);
-    } 
-  #endif
-  #ifdef ADC4
-    else if (cs_params->adc_handle->Instance == ADC4) {
-      // enable interrupt
-      HAL_NVIC_SetPriority(ADC4_IRQn, 0, 0);
-      HAL_NVIC_EnableIRQ(ADC4_IRQn);
-    } 
-  #endif
-  #ifdef ADC5
-    else if (cs_params->adc_handle->Instance == ADC5) {
-      // enable interrupt
-      HAL_NVIC_SetPriority(ADC5_IRQn, 0, 0);
-      HAL_NVIC_EnableIRQ(ADC5_IRQn);
-    } 
-  #endif
+  #ifdef SIMPLEFOC_STM32_ADC_INTERRUPT 
   HAL_ADCEx_InjectedStart_IT(cs_params->adc_handle);
-  }else{
+  #else
   HAL_ADCEx_InjectedStart(cs_params->adc_handle);
-  }
+  #endif
 
   // restart all the timers of the driver
   _startTimers(driver_params->timers, 6);
@@ -127,20 +76,22 @@ void _driverSyncLowSide(void* _driver_params, void* _cs_params){
 float _readADCVoltageLowSide(const int pin, const void* cs_params){
   for(int i=0; i < 3; i++){
     if( pin == ((Stm32CurrentSenseParams*)cs_params)->pins[i]){ // found in the buffer
-      if (use_adc_interrupt){
+      #ifdef SIMPLEFOC_STM32_ADC_INTERRUPT
         return adc_val[_adcToIndex(((Stm32CurrentSenseParams*)cs_params)->adc_handle)][i] * ((Stm32CurrentSenseParams*)cs_params)->adc_voltage_conv;
-      }else{
+      #else
         // an optimized way to go from i to the channel i=0 -> channel 1, i=1 -> channel 2, i=2 -> channel 3
         uint32_t channel = (i == 0) ? ADC_INJECTED_RANK_1 : (i == 1) ? ADC_INJECTED_RANK_2 : ADC_INJECTED_RANK_3;
-        return HAL_ADCEx_InjectedGetValue(((Stm32CurrentSenseParams*)cs_params)->adc_handle,channel) * ((Stm32CurrentSenseParams*)cs_params)->adc_voltage_conv;
-      }
+        return HAL_ADCEx_InjectedGetValue(((Stm32CurrentSenseParams*)cs_params)->adc_handle, channel) * ((Stm32CurrentSenseParams*)cs_params)->adc_voltage_conv;
+      #endif
     }
   } 
   return 0;
 }
 
+#ifdef SIMPLEFOC_STM32_ADC_INTERRUPT
 extern "C" {
   void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef *AdcHandle){
+
     // calculate the instance
     int adc_index = _adcToIndex(AdcHandle);
 
@@ -152,8 +103,9 @@ extern "C" {
     
     adc_val[adc_index][0]=HAL_ADCEx_InjectedGetValue(AdcHandle, ADC_INJECTED_RANK_1);
     adc_val[adc_index][1]=HAL_ADCEx_InjectedGetValue(AdcHandle, ADC_INJECTED_RANK_2);
-    adc_val[adc_index][2]=HAL_ADCEx_InjectedGetValue(AdcHandle, ADC_INJECTED_RANK_3);  
+    adc_val[adc_index][2]=HAL_ADCEx_InjectedGetValue(AdcHandle, ADC_INJECTED_RANK_3);    
   }
 }
+#endif
 
 #endif
