@@ -1,4 +1,5 @@
 #include "../../../hardware_api.h"
+#if defined(HAL_OPAMP_MODULE_ENABLED)
 #if defined(ARDUINO_B_G431B_ESC1) || defined(ARDUINO_GENERIC_G431CBUX)
 
 #include "communication/SimpleFOCDebug.h"
@@ -516,3 +517,4 @@ void HAL_OPAMP_MspDeInit(OPAMP_HandleTypeDef* hopamp)
 // #endif
 
 #endif 
+#endif

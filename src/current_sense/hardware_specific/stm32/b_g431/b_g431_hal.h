@@ -1,8 +1,10 @@
 #ifndef B_G431_ESC1_HAL
 #define B_G431_ESC1_HAL
 
+#if defined(HAL_OPAMP_MODULE_ENABLED)
 #if defined(ARDUINO_B_G431B_ESC1) || defined(ARDUINO_GENERIC_G431CBUX)
 
+#pragma message("SimpleFOC: USE STM3G4 with OPAMP")
 
 #warning "USE ARDUINO_B_G431B_ESC1"
 
@@ -16,6 +18,7 @@ void MX_ADC2_Init(ADC_HandleTypeDef* hadc2);
 void MX_OPAMP1_Init(OPAMP_HandleTypeDef* hopamp);
 void MX_OPAMP2_Init(OPAMP_HandleTypeDef* hopamp);
 void MX_OPAMP3_Init(OPAMP_HandleTypeDef* hopamp);
+#endif
 #endif
 
 #endif

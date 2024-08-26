@@ -1,6 +1,6 @@
 #if defined(STM32G4xx)
 #include "stm32g4_utils.h"
-
+#if !defined(HAL_OPAMP_MODULE_ENABLED)
 #if defined(_STM32_DEF_) and !defined(ARDUINO_B_G431B_ESC1) and !defined(ARDUINO_GENERIC_G431CBUX)
 
 /* Exported Functions */
@@ -235,5 +235,6 @@ int _adcToIndex(ADC_HandleTypeDef *AdcHandle){
   return _adcToIndex(AdcHandle->Instance);
 }
 
+#endif
 #endif
 #endif

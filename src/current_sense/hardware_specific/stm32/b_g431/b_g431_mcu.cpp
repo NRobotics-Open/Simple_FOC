@@ -1,5 +1,5 @@
 #include "../../../hardware_api.h"
-
+#if defined(HAL_OPAMP_MODULE_ENABLED)
 #if defined(ARDUINO_B_G431B_ESC1) || defined(ARDUINO_GENERIC_G431CBUX)
 
 
@@ -199,4 +199,5 @@ void _driverSyncLowSide(void* _driver_params, void* _cs_params){
 
 }
 
+#endif
 #endif
