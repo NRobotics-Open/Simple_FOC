@@ -1,7 +1,8 @@
 
 #include "../../hardware_api.h"
 
-#if defined(_STM32_DEF_) and !defined(ARDUINO_B_G431B_ESC1) and !defined(ARDUINO_GENERIC_G431CBUX)
+#if !defined(HAL_OPAMP_MODULE_ENABLED)
+#if defined(_STM32_DEF_) and !defined(ARDUINO_B_G431B_ESC1)
 
 #include "stm32_mcu.h"
 
@@ -29,5 +30,6 @@ __attribute__((weak))  float _readADCVoltageInline(const int pinA, const void* c
   uint32_t raw_adc = analogRead(pinA);
   return raw_adc * ((Stm32CurrentSenseParams*)cs_params)->adc_voltage_conv;
 }
+#endif 
 
 #endif

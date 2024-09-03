@@ -5,7 +5,7 @@
 #include "Arduino.h"
 #if defined(STM32G4xx)
 #if !defined(HAL_OPAMP_MODULE_ENABLED)
-#if defined(_STM32_DEF_) and !defined(ARDUINO_B_G431B_ESC1) and !defined(ARDUINO_GENERIC_G431CBUX)
+#if defined(_STM32_DEF_) and !defined(ARDUINO_B_G431B_ESC1)
 
 #define _TRGO_NOT_AVAILABLE 12345
 
